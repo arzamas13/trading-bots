@@ -4,6 +4,25 @@ from datetime import datetime
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import socket
+import threading
+import time
+
+def keep_alive_server():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(('0.0.0.0', 8080))
+        s.listen(1)
+        print("Fake server started on port 8080 to prevent sleep on Render")
+        while True:
+            conn, addr = s.accept()
+            conn.close()
+    except Exception as e:
+        print(f"Keep-alive error: {e}")
+        time.sleep(5)
+
+threading.Thread(target=keep_alive_server, daemon=True).start()
+
 # ==================== НАСТРОЙКИ ====================
 
 symbols = [
