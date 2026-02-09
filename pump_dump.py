@@ -4,24 +4,30 @@ from datetime import datetime
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# Замени весь блок keep_alive_server на этот
+
 import socket
 import threading
 import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
-def keep_alive_server():
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"OK - Render keep-alive")
+
+def run_server():
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(('0.0.0.0', 8080))
-        s.listen(1)
-        print("Fake server started on port 8080 to prevent sleep on Render")
-        while True:
-            conn, addr = s.accept()
-            conn.close()
+        server = HTTPServer(('0.0.0.0', 8080), SimpleHandler)
+        print("HTTP keep-alive server started on port 8080 for Render")
+        server.serve_forever()
     except Exception as e:
-        print(f"Keep-alive error: {e}")
+        print(f"HTTP server error: {e}")
         time.sleep(5)
 
-threading.Thread(target=keep_alive_server, daemon=True).start()
+threading.Thread(target=run_server, daemon=True).start()
 
 # ==================== НАСТРОЙКИ ====================
 
